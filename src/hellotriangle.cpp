@@ -17,14 +17,14 @@ void HelloTriangle::init() {
 		std::cout << "An error happened during GLFW\'s initialization." << std::endl;
 	}
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	m_window = glfwCreateWindow(1280, 720, "VulkanValidationTest", nullptr, nullptr);
+	m_window = glfwCreateWindow(1280, 720, "VulkanTriangleIssuesChallenge", nullptr, nullptr);
 
 	VkApplicationInfo applicationInfo = {};
 	applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 	applicationInfo.pNext = nullptr;
-	applicationInfo.pApplicationName = "VulkanValidationTest";
+	applicationInfo.pApplicationName = "VulkanTriangleIssuesChallenge";
 	applicationInfo.applicationVersion = VK_MAKE_VERSION(0, 0, 1);
-	applicationInfo.pEngineName = "VulkanValidationTest";
+	applicationInfo.pEngineName = "VulkanTriangleIssuesChallenge";
 	applicationInfo.engineVersion = VK_MAKE_VERSION(0, 0, 1);
 	applicationInfo.apiVersion = VK_API_VERSION_1_1;
 
