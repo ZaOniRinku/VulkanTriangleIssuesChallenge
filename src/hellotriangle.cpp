@@ -1,10 +1,4 @@
 #include "hellotriangle.h"
-#if defined(TUTORIEL_VK_OS_WINDOWS)
-#define GLFW_EXPOSE_NATIVE_WIN32
-#elif defined(TUTORIEL_VK_OS_LINUX)
-#define GLFW_EXPOSE_NATIVE_X11
-#endif
-#include "../external/glfw/include/GLFW/glfw3native.h"
 #include "../external/glslang/glslang/Include/ShHandle.h"
 #include "../external/glslang/SPIRV/GlslangToSpv.h"
 #include "../external/glslang/StandAlone/DirStackFileIncluder.h"
@@ -19,6 +13,12 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBits
 }
 
 void HelloTriangle::init() {
+	if (!glfwInit()) {
+		std::cout << "An error happened during GLFW\'s initialization." << std::endl;
+	}
+	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+	m_window = glfwCreateWindow(1280, 720, "VulkanValidationTest", nullptr, nullptr);
+
 	VkApplicationInfo applicationInfo = {};
 	applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 	applicationInfo.pNext = nullptr;
@@ -41,22 +41,13 @@ void HelloTriangle::init() {
 	instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(explicitLayers.size());
 	instanceCreateInfo.ppEnabledLayerNames = explicitLayers.data();
 
-	std::vector<const char*> instanceExtensions;
+	uint32_t glfwInstanceExtensionCount;
+	const char** glfwInstanceExtensions = glfwGetRequiredInstanceExtensions(&glfwInstanceExtensionCount);
+	std::vector<const char*> instanceExtensions(glfwInstanceExtensions, glfwInstanceExtensions + glfwInstanceExtensionCount);
 	if (instanceExtensionAvailable("VK_EXT_debug_utils")) {
 		instanceExtensions.push_back("VK_EXT_debug_utils");
 	}
-	if (instanceExtensionAvailable("VK_KHR_surface")) {
-		instanceExtensions.push_back("VK_KHR_surface");
-	}
-#if defined(TUTORIEL_VK_OS_WINDOWS)
-	if (instanceExtensionAvailable("VK_KHR_win32_surface")) {
-		instanceExtensions.push_back("VK_KHR_win32_surface");
-	}
-#elif defined(TUTORIEL_VK_OS_LINUX)
-	if (instanceExtensionAvailable("VK_KHR_xlib_surface")) {
-		instanceExtensions.push_back("VK_KHR_xlib_surface");
-	}
-#endif
+
 	instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(instanceExtensions.size());
 	instanceCreateInfo.ppEnabledExtensionNames = instanceExtensions.data();
 	VK_CHECK(vkCreateInstance(&instanceCreateInfo, nullptr, &m_instance));
@@ -76,36 +67,7 @@ void HelloTriangle::init() {
 	auto createDebugUtilsMessengerEXT = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(m_instance, "vkCreateDebugUtilsMessengerEXT");
 	VK_CHECK(createDebugUtilsMessengerEXT(m_instance, &debugMessengerCreateInfo, nullptr, &m_debugMessenger));
 
-	if (!glfwInit()) {
-		std::cout << "An error happened during GLFW\'s initialization." << std::endl;
-	}
-	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	m_window = glfwCreateWindow(1280, 720, "VulkanValidationTest", nullptr, nullptr);
-
-#if defined(TUTORIEL_VK_OS_WINDOWS)
-	HWND handle = glfwGetWin32Window(m_window);
-	VkWin32SurfaceCreateInfoKHR surfaceCreateInfo = {};
-	surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-	surfaceCreateInfo.pNext = nullptr;
-	surfaceCreateInfo.flags = 0;
-	surfaceCreateInfo.hinstance = reinterpret_cast<HINSTANCE>(GetWindowLongPtr(handle, GWLP_HINSTANCE));
-	surfaceCreateInfo.hwnd = handle;
-
-	auto createWin32SurfaceKHR = (PFN_vkCreateWin32SurfaceKHR)vkGetInstanceProcAddr(m_instance, "vkCreateWin32SurfaceKHR");
-	VK_CHECK(createWin32SurfaceKHR(m_instance, &surfaceCreateInfo, nullptr, &m_surface));
-#elif defined(TUTORIEL_VK_OS_LINUX)
-	m_display = XOpenDisplay(NULL);
-	Window handle = glfwGetX11Window(m_window);
-	VkXlibSurfaceCreateInfoKHR surfaceCreateInfo = {};
-	surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
-	surfaceCreateInfo.pNext = nullptr;
-	surfaceCreateInfo.flags = 0;
-	surfaceCreateInfo.dpy = m_display;
-	surfaceCreateInfo.window = handle;
-
-	auto createXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)vkGetInstanceProcAddr(m_instance, "vkCreateXlibSurfaceKHR");
-	VK_CHECK(createXlibSurfaceKHR(m_instance, &surfaceCreateInfo, nullptr, &m_surface));
-#endif
+	glfwCreateWindowSurface(m_instance, m_window, nullptr, &m_surface);
 
 	uint32_t physicalDeviceCount;
 	vkEnumeratePhysicalDevices(m_instance, &physicalDeviceCount, nullptr);

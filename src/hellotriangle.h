@@ -1,10 +1,6 @@
 #pragma once
+#define GLFW_INCLUDE_VULKAN
 #include "../external/glfw/include/GLFW/glfw3.h"
-#if defined(TUTORIEL_VK_OS_WINDOWS)
-#define VK_USE_PLATFORM_WIN32_KHR
-#elif defined(TUTORIEL_VK_OS_LINUX)
-#define VK_USE_PLATFORM_XLIB_KHR
-#endif
 #include <vulkan/vulkan.h>
 #include <iostream>
 #include <vector>
